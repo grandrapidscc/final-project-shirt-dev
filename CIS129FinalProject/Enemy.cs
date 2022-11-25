@@ -1,34 +1,55 @@
-﻿class Enemy
+﻿enum EnemyType
 {
-    public bool IsAlive = true;
+    Goblin,
+    Orc,
+    Banshee
+}
+
+class Enemy
+{
+    public EnemyType Type;
+    public string Name;
     public int HP;
+    public string AttackName;
+    public int Damage;
+    public bool IsAlive = true;
 
     public void TakeDamage(int hp)
     {
         if (HP - hp > 0) HP = HP - hp;
         else if (HP < 0) IsAlive = false;
     }
-}
-class GoblinEnemy : Enemy
-{
-    public readonly string Name = "Goblin";
-    public new int HP = 3;
-    public readonly string AttackName = "Body Slam";
-    public readonly int Damage = 2;
-}
 
-class OrcEnemy : Enemy
-{
-    public readonly string Name = "Orc";
-    public new int HP = 5;
-    public readonly string AttackName = "Cleave";
-    public readonly int Damage = 3;
-}
+    public Enemy(EnemyType enemyType)
+    {
+        Type = enemyType;
 
-class BansheeEnemy : Enemy
-{
-    public readonly string Name = "Banshee";
-    public new int HP = 8;
-    public readonly string AttackName = "Screech";
-    public readonly int Damage = 5;
+        switch (Type)
+        {
+            case EnemyType.Goblin:
+                Name = "Goblin";
+                HP = 3;
+                AttackName = "Body Slam";
+                Damage = 2;
+                break;
+            case EnemyType.Orc:
+                Name = "Orc";
+                HP = 5;
+                AttackName = "Cleave";
+                Damage = 3;
+                break;
+            case EnemyType.Banshee:
+                Name = "Banshee";
+                HP = 8;
+                AttackName = "Screech";
+                Damage = 5;
+                break;
+            default:
+                Name = "";
+                HP = 0;
+                AttackName = "";
+                Damage = 0;
+                break;
+        }
+    }
 }

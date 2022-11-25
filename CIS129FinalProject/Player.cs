@@ -22,23 +22,31 @@
         throw new NotImplementedException();
     }
 
-    public void Move(Direction direction)
+    public bool Move(Direction direction)
     {
         switch (direction)
         {
             case Direction.North:
-                if(PositionY < 4) PositionY++;
+                if (PositionY < 4) PositionY++;
+                else return false;
                 break;
             case Direction.South:
                 if (PositionY > 0) PositionY--;
+                else return false;
                 break;
             case Direction.East:
                 if(PositionX > 0) PositionX--;
+                else return false;
                 break;
             case Direction.West:
-                if (PositionY < 4) PositionX++;
+                if (PositionX < 4) PositionX++;
+                else return false;
                 break;
+            default:
+                throw new NotImplementedException();
         }
+
+        return true;
     }
 
     public Player(int x, int y)
