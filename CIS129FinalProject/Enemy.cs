@@ -14,10 +14,19 @@ class Enemy
     public int Damage;
     public bool IsAlive = true;
 
+    public void Attack(Player player)
+    {
+        player.HP -= Damage;
+    }
+
     public void TakeDamage(int hp)
     {
-        if (HP - hp > 0) HP = HP - hp;
-        else if (HP < 0) IsAlive = false;
+        HP -= hp;
+        if (HP <= 0)
+        {
+            HP = 0;
+            IsAlive = false;
+        }
     }
 
     public Enemy(EnemyType enemyType)

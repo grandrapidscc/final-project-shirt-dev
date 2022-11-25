@@ -7,10 +7,17 @@
 class Powerup
 {
     public PowerupType Type;
-    public bool IsUsed;
+    public bool IsUsed = false;
     public string Name;
     public int HP;
     public int MP;
+
+    public void Use(Player player)
+    {
+        player.HP += HP;
+        player.MP += MP;
+        IsUsed = true;
+    }
 
     public Powerup(PowerupType powerupType)
     {

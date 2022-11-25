@@ -1,62 +1,126 @@
-﻿var rooms = SetupRooms();
-var player = new Player(1, 3); // start at room (1, 3)
+﻿using Spectre.Console;
 
 do
 {
-    var currentRoom = rooms[player.PositionX, player.PositionY];
+    var rooms = SetupRooms();
 
-    if(currentRoom.Enemy != null && currentRoom.Enemy.IsAlive)
-    {
-        Console.WriteLine(currentRoom.Enemy.Name);
-    }
+    var random = new Random();
+    var player = new Player(random.Next(0, 5), random.Next(0, 5));
 
-    if (currentRoom.Powerup != null && !currentRoom.Powerup.IsUsed)
-    {
-        Console.WriteLine(currentRoom.Powerup.Name);
-    }
-
-    bool moved = false;
-    string message = @"You are in a room illuminated by torches.  It reeks of orc, though you do not see any nearby.  Press...
-1.	To go north
-2.	To go south
-3.	To go east
-4.	To go west
-";
-
-    Console.WriteLine(message);
+    rooms[random.Next(0, 5), random.Next(0, 5)].IsExit = true;
 
     do
     {
-        var response = Console.ReadKey(true);
+        var currentRoom = rooms[player.PositionX, player.PositionY];
+        bool fled = false;
 
-        switch (response.Key)
+        if (currentRoom.IsExit)
         {
-            case ConsoleKey.D1:
-                moved = player.Move(Direction.North);
-                break;
-            case ConsoleKey.D2:
-                moved = player.Move(Direction.South);
-                break;
-            case ConsoleKey.D3:
-                moved = player.Move(Direction.East);
-                break;
-            case ConsoleKey.D4:
-                moved = player.Move(Direction.West);
-                break;
-            default:
-                break;
+            bool continueGame = AnsiConsole.Confirm("Congratulations! You have won the game!\nWould you like to play again?");
+            if (!continueGame)
+            {
+                AnsiConsole.WriteLine("Thank you for playing!");
+                Thread.Sleep(3000);
+                Environment.Exit(0);
+            }
+            break;
         }
 
-        if (!moved)
+        if (currentRoom.Enemy != null && currentRoom.Enemy.IsAlive)
         {
-            Console.WriteLine("You have hit a wall. Try going a different direction.");
-            continue;
+            do
+            {
+                AnsiConsole.Clear();
+                AnsiConsole.WriteLine(string.Format("You have encountered a {0}!", currentRoom.Enemy.Name));
+                AnsiConsole.WriteLine(string.Format("{0} used {1}!", currentRoom.Enemy.Name, currentRoom.Enemy.AttackName));
+                currentRoom.Enemy.Attack(player);
+                AnsiConsole.WriteLine(string.Format("\nYour HP: {0}\nYour MP: {1}\nEnemy HP: {2}\n", player.HP, player.MP, currentRoom.Enemy.HP));
+
+
+                var choice = AnsiConsole.Prompt(new SelectionPrompt<PlayerAction>()
+                    .Title("What do you want to do?")
+                    .AddChoices(new[] { PlayerAction.Fireball, PlayerAction.Heal, PlayerAction.Flee })
+                );
+
+                switch (choice)
+                {
+                    case PlayerAction.Fireball:
+                        AnsiConsole.Clear();
+                        player.Fireball(currentRoom.Enemy);
+                        AnsiConsole.WriteLine("You cast a fireball!");
+                        if (!currentRoom.Enemy.IsAlive)
+                        {
+                            AnsiConsole.WriteLine(string.Format("{0} fainted.", currentRoom.Enemy.Name));
+                        }
+                        break;
+                    case PlayerAction.Heal:
+                        AnsiConsole.Clear();
+                        player.Heal();
+                        AnsiConsole.WriteLine("You cast a spell to heal your wounds!\nYou regained 3 HP.");
+                        break;
+                    case PlayerAction.Flee:
+                        AnsiConsole.Clear();
+                        fled = player.Flee();
+                        if (fled) AnsiConsole.WriteLine("You got away safely!");
+                        else AnsiConsole.WriteLine("You couldn't get away!");
+                        break;
+                }
+
+                Thread.Sleep(3000);
+                AnsiConsole.Clear();
+
+            } while (currentRoom.Enemy.IsAlive && player.IsAlive && !fled);
+
         }
 
-    } while (!moved);
-    
+        if (currentRoom.Powerup != null && !currentRoom.Powerup.IsUsed && !fled)
+        {
+            AnsiConsole.WriteLine(string.Format("You found a {0}!", currentRoom.Powerup.Name));
+            currentRoom.Powerup.Use(player);
+            switch (currentRoom.Powerup.Type)
+            {
+                case PowerupType.HealthPotion:
+                    AnsiConsole.WriteLine(string.Format("The potion restores {0} HP!", currentRoom.Powerup.HP));
+                    break;
+                case PowerupType.MagickaPotion:
+                    AnsiConsole.WriteLine(string.Format("The potion restores {0} MP!", currentRoom.Powerup.MP));
+                    break;
+            }
+            currentRoom.Powerup.Use(player);
+            AnsiConsole.WriteLine(string.Format("\nYour HP: {0}\nYour MP: {1}", player.HP, player.MP));
 
-} while (player.HP > 0);
+            Thread.Sleep(3000);
+            AnsiConsole.Clear();
+
+        }
+
+        bool moved;
+        do
+        {
+            AnsiConsole.Clear();
+            AnsiConsole.WriteLine(string.Format("Your HP: {0}\nYour MP: {1}\n", player.HP, player.MP));
+
+            var direction = AnsiConsole.Prompt(new SelectionPrompt<Direction>()
+            .Title("You are in a room illuminated by torches. Which direction would you like to go?")
+            .AddChoices(new[] { Direction.North, Direction.South, Direction.East, Direction.West })
+            );
+
+            moved = player.Move(direction);
+
+            if (!moved)
+            {
+                AnsiConsole.WriteLine("You have hit a wall. Try going a different direction.\n");
+                Thread.Sleep(3000);
+                AnsiConsole.Clear();
+                continue;
+            }
+
+        } while (!moved);
+
+
+    } while (player.IsAlive);
+
+} while (true);
 
 
 static Room[,] SetupRooms()

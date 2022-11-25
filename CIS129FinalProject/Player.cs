@@ -2,6 +2,7 @@
 {
     public int HP = 100;
     public int MP = 200;
+    public bool IsAlive = true;
     public int PositionX;
     public int PositionY;
 
@@ -17,9 +18,11 @@
         HP += 3;
     }
 
-    public void Flee()
+    public bool Flee()
     {
-        throw new NotImplementedException();
+        Random random = new Random();
+        int result = random.Next(0, 100);
+        return result <= 50;
     }
 
     public bool Move(Direction direction)
@@ -48,6 +51,15 @@
 
         return true;
     }
+    public void TakeDamage(int hp)
+    {
+        HP -= hp;
+        if (HP <= 0)
+        {
+            HP = 0;
+            IsAlive = false;
+        }
+    }
 
     public Player(int x, int y)
     {
@@ -62,4 +74,12 @@ enum Direction
     South,
     East,
     West
+}
+
+
+enum PlayerAction
+{
+    Fireball,
+    Heal,
+    Flee
 }
