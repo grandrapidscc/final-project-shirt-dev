@@ -75,6 +75,7 @@ do
 
         if (currentRoom.Powerup != null && !currentRoom.Powerup.IsUsed && !fled)
         {
+            AnsiConsole.Clear();
             AnsiConsole.WriteLine(string.Format("You found a {0}!", currentRoom.Powerup.Name));
             currentRoom.Powerup.Use(player);
             switch (currentRoom.Powerup.Type)
